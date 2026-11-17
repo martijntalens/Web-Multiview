@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:">
+  <title>Web Multiview</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header id="topbar">
+    <div id="tabs" role="tablist" data-i18n-aria-label="app.workspaces"></div>
+    <div class="toolbar">
+      <div class="btn-group">
+        <button id="btn-add" class="tb-btn" data-i18n-title="toolbar.newPane"></button>
+        <button id="btn-add-menu" class="tb-btn caret" data-i18n-title="toolbar.openFavorite"></button>
+      </div>
+      <button id="btn-layout" class="tb-btn" data-i18n-title="toolbar.layout"></button>
+      <button id="btn-reload-all" class="tb-btn icon" data-i18n-title="toolbar.reloadAll"></button>
+      <button id="btn-fullscreen" class="tb-btn icon" data-i18n-title="toolbar.fullscreen"></button>
+      <button id="btn-settings" class="tb-btn icon" data-i18n-title="toolbar.settings"></button>
+    </div>
+  </header>
+
+  <main id="stage">
+    <div id="layout"></div>
+    <div id="panes"></div>
+    <div id="empty" hidden>
+      <div class="empty-card">
+        <div class="empty-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <h1 data-i18n="empty.noPanes"></h1>
+        <p data-i18n="empty.text"></p>
+        <div class="empty-actions">
+          <button id="empty-add" class="btn primary" data-i18n="empty.addPane"></button>
+          <button id="empty-starter" class="btn" data-i18n="empty.starter"></button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+  <div id="shield"></div>
+  <div id="drop-indicator" hidden></div>
+  <div id="drag-ghost" hidden></div>
+  <div id="menu-backdrop" hidden></div>
+  <div id="menu" role="menu" hidden></div>
+  <datalist id="fav-list"></datalist>
+
+  <dialog id="settings">
+    <form id="settings-form" method="dialog">
+      <h2 data-i18n="settings.title"></h2>
+      <label class="field">
+        <span data-i18n="settings.homePage"></span>
+        <input name="homePage" placeholder="https://www.google.com" spellcheck="false">
+      </label>
+      <label class="field">
+        <span data-i18n="settings.searchEngine"></span>
+        <select name="searchEngine">
+          <option value="google">Google</option>
+          <option value="bing">Bing</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+        </select>
+      </label>
+      <label class="field">
+        <span><span data-i18n="settings.favorites"></span> <small><span data-i18n="settings.favoritesHint"></span> <code data-i18n="settings.favoritesFormat"></code></small></span>
+        <textarea name="favorites" rows="8" spellcheck="false"></textarea>
+      </label>
+      <label class="field">
+        <span data-i18n="settings.language"></span>
+        <select name="language">
+          <option value="auto" data-i18n="settings.languageAuto"></option>
+          <option value="en">English</option>
+          <option value="nl">Nederlands</option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" name="restoreSession">
+        <span data-i18n="settings.restoreSession"></span>
+      </label>
+      <details>
+        <summary data-i18n="settings.shortcuts"></summary>
+        <table class="keys">
+          <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td data-i18n="keys.splitRight"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td><td data-i18n="keys.splitDown"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td data-i18n="keys.close"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td data-i18n="keys.maximize"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd> / <kbd>F5</kbd></td><td data-i18n="keys.reload"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td><td data-i18n="keys.reloadAll"></td></tr>
+          <tr><td><kbd>Alt</kbd>+<kbd>←</kbd> / <kbd>→</kbd></td><td data-i18n="keys.backForward"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td data-i18n="keys.address"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd></td><td data-i18n="keys.zoom"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td data-i18n="keys.grid"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>T</kbd></td><td data-i18n="keys.newWs"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Tab</kbd> / <kbd>Ctrl</kbd>+<kbd>1</kbd>…<kbd>9</kbd></td><td data-i18n="keys.switchWs"></td></tr>
+          <tr><td><kbd>F11</kbd></td><td data-i18n="keys.fullscreen"></td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></td><td data-i18n="keys.devtools"></td></tr>
+        </table>
+        <p class="hint" data-i18n="keys.dragHint"></p>
+      </details>
+      <div class="dialog-actions">
+        <button type="button" id="btn-clear-session" class="btn link danger" data-i18n="settings.clearSession"></button>
+        <button type="button" id="btn-reset-perms" class="btn link" data-i18n="settings.resetPermissions"></button>
+        <span class="spacer"></span>
+        <button type="button" id="settings-cancel" class="btn" data-i18n="settings.cancel"></button>
+        <button type="submit" class="btn primary" data-i18n="settings.save"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="ask">
+    <form id="ask-form" method="dialog">
+      <h2 id="ask-title"></h2>
+      <input id="ask-input" spellcheck="false">
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button type="button" id="ask-cancel" class="btn" data-i18n="ask.cancel"></button>
+        <button type="submit" class="btn primary" data-i18n="ask.ok"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
